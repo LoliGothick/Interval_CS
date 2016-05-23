@@ -101,14 +101,8 @@ namespace cranberries
 
 		public static Interval operator /(Interval l, double r)
 		{
-			if (r < 0.0)
-			{
-				return new Interval(l.Upper / r, l.Lower / r);
-			}
-			else
-			{
-				return new Interval(l.Lower / r, l.Upper / r);
-			}
+			if (r < 0.0) return new Interval(l.Upper / r, l.Lower / r);
+			return new Interval(l.Lower / r, l.Upper / r);
 		}
 
 		public override bool Equals(object obj) => base.Equals(obj);
@@ -147,7 +141,11 @@ namespace cranberries
 		public override string ToString() => $"[{Lower}, {Upper}]";
 
 		// Constants
-		public Interval PI => new Interval(Math.PI, Math.PI);
+		public static Interval PI => new Interval(Math.PI, Math.PI);
+
+		public static Interval E => new Interval(Math.E, Math.E);
+
+		public static Interval Whole => new Interval(double.NegativeInfinity, double.PositiveInfinity);
 
 		public Interval Sin()
 		{
@@ -274,6 +272,87 @@ namespace cranberries
 			if (Lower < -1.0 || 1.0 < Upper) throw new ArgumentOutOfRangeException();
 			return new Interval(Math.Acos(Upper), Math.Acos(Lower));
 		}
+
+		public Interval Atan() => new Interval(Math.Atan(Lower), Math.Atan(Upper));
+
+		public Interval Sinh()
+		{
+			return new Interval(Math.Sinh(Lower), Math.Sinh(Upper));
+		}
+
+		public Interval Cosh()
+		{
+			if (Lower < 0.0 && 0.0 < Upper) return new Interval(1, Math.Max(Math.Cosh(Lower), Math.Cosh(Upper)));
+			else if (Upper < 0.0) return new Interval(Math.Cosh(Upper), Math.Cosh(Lower));
+			return new Interval(Math.Cosh(Lower), Math.Cosh(Upper));
+		}
+
+		public Interval Tanh()
+		{
+			return new Interval(Math.Tanh(Lower), Math.Tanh(Upper));
+		}
+
+		public Interval Asinh()
+		{
+			return new Interval(Math.Log(Lower + Math.Sqrt(Lower * Lower + 1.0)), Math.Log(Upper + Math.Sqrt(Upper * Upper + 1.0)));
+		}
+
+		public Interval Acosh()
+		{
+			if (Lower < 1.0) throw new ArgumentOutOfRangeException();
+			return new Interval(Math.Log(Lower + Math.Sqrt(Lower * Lower - 1.0)), Math.Log(Upper + Math.Sqrt(Upper * Upper - 1.0)));
+		}
+
+		public Interval Atanh()
+		{
+			if (Lower < -1.0 || 1.0 < Upper) throw new ArgumentOutOfRangeException();
+			return new Interval(Math.Log((1.0 + Lower) / (1.0 - Lower)) / 2.0, Math.Log((1.0 + Upper) / (1.0 - Upper)) / 2.0);
+		}
+
+		public Interval Sec() => Cos().Inverse();
+
+		public Interval Csc() => Sin().Inverse();
+
+		public Interval Cot() => Tan().Inverse();
+
+		public Interval Acsc()
+		{
+			if (-1.0 < Lower || 1.0 < Upper) throw new ArgumentOutOfRangeException();
+			return Inverse().Asin();
+		}
+
+		public Interval Asec()
+		{
+			if (-1.0 < Lower || 1.0 < Upper) throw new ArgumentOutOfRangeException();
+			return Inverse().Acos();
+		}
+
+		public Interval Acot() => Inverse().Atan();
+
+		public Interval Pow(double n)
+		{
+			if (n < 0)
+			{
+				return Inverse().Pow(-n);
+			}
+			else if (n % 1 == 0)
+			{
+				if (n == 0.0) return new Interval(1, 1);
+				else if (Lower <= 0.0 && 0.0 <= Upper) return new Interval(0, Math.Max(Math.Pow(Lower, n), Math.Pow(Upper, n)));
+				return new Interval(Math.Min(Math.Pow(Lower, n), Math.Pow(Upper, n)), Math.Max(Math.Pow(Lower, n), Math.Pow(Upper, n)));
+			}
+			else if (Lower < 0.0) throw new ArgumentOutOfRangeException();
+			else if (Lower <= 0.0 && 0.0 <= Upper) return new Interval(0, Math.Max(Math.Pow(Lower, n), Math.Pow(Upper, n)));
+			return new Interval(Math.Min(Math.Pow(Lower, n), Math.Pow(Upper, n)), Math.Max(Math.Pow(Lower, n), Math.Pow(Upper, n)));
+		}
+
+		public Interval Sqrt()
+		{
+			if (Lower < 0.0) throw new ArgumentOutOfRangeException();
+			return new Interval(Math.Sqrt(Lower), Math.Sqrt(Upper));
+		}
+
+		public Interval Cbrt() => new Interval(Math.Pow(Lower, 0.3333333333333333), Math.Pow(Upper, 0.333333333333333333));
 	}
 
 	internal class Program
@@ -284,6 +363,7 @@ namespace cranberries
 			var x = new Interval(-1, 2);
 			var y = new Interval(1, 2);
 			var z = new Interval(1, 2);
+
 			Console.WriteLine($"zero = {zero.ToString()}");
 			Console.WriteLine($"{nameof(x)} = {x.ToString()}");
 			Console.WriteLine($"{nameof(y)} = {y.ToString()}");
@@ -296,6 +376,9 @@ namespace cranberries
 			Console.WriteLine($"y.Equals(z) = {y.Equals(z)}");
 			Console.WriteLine($"y == z -> {y == z}");
 			Console.WriteLine($"Sin(x) = {x.Sin().ToString()}");
+			Console.WriteLine($"Asinh(x) = {x.Asinh().ToString()}");
+			Console.WriteLine($"Atanh([-1,1]) = {(new Interval(-1, 1)).Atanh().ToString()}");
+			Console.WriteLine($"Csc([0.5,0.6]) = {(new Interval(0.5, 0.6).Csc().ToString())}");
 			Console.Read();
 		}
 	}
