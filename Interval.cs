@@ -14,12 +14,12 @@ namespace Cranberries
             public double Lower
             {
                 get => lower;
-                set => lower = value <= upper ? throw new ArgumentException("Set value that greater than upper field!") : value;
+                set => lower = value <= upper ? value : throw new ArgumentException("Set value that greater than upper field!");
             }
             public double Upper
             {
                 get => upper;
-                set => upper = lower <= value ? throw new ArgumentException("Set value that less than lower field!") : value;
+                set => upper = lower <= value ? value : throw new ArgumentException("Set value that less than lower field!");
             }
 
             public void Deconstruct(out double x, out double y) => (x, y) = (lower, upper);
